@@ -1,0 +1,47 @@
+{
+  "name": "better-icons",
+  "version": "1.0.0",
+  "description": "MCP server for searching and retrieving icons from 200+ icon libraries powered by Iconify",
+  "author": "bekacru",
+  "license": "MIT",
+  "type": "module",
+  "main": "dist/cli.js",
+  "bin": {
+    "better-icons": "./dist/cli.js"
+  },
+  "files": [
+    "dist",
+    "better-icons"
+  ],
+  "scripts": {
+    "build": "bun build ./cli.ts --outdir dist --target node --minify",
+    "start": "bun run index.ts",
+    "prepublishOnly": "bun run build"
+  },
+  "keywords": [
+    "mcp",
+    "icons",
+    "iconify",
+    "svg",
+    "ai",
+    "cursor",
+    "claude",
+    "model-context-protocol"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/bekacru/better-icons"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.0"
+  },
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
