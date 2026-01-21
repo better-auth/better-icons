@@ -19,8 +19,6 @@ describe("getAgentConfigs", () => {
     expect(names).toContain("windsurf");
     expect(names).toContain("vscode");
     expect(names).toContain("opencode");
-    expect(names).toContain("cline");
-    expect(names).toContain("aider");
   });
 
   test("each config has required properties", () => {
@@ -30,10 +28,12 @@ describe("getAgentConfigs", () => {
       expect(config).toHaveProperty("name");
       expect(config).toHaveProperty("displayName");
       expect(config).toHaveProperty("configPath");
+      expect(config).toHaveProperty("projectConfigPath");
       expect(config).toHaveProperty("detected");
       expect(typeof config.name).toBe("string");
       expect(typeof config.displayName).toBe("string");
       expect(typeof config.configPath).toBe("string");
+      expect(typeof config.projectConfigPath).toBe("string");
       expect(typeof config.detected).toBe("boolean");
     }
   });
@@ -46,12 +46,12 @@ describe("getAgentConfigs", () => {
     expect(cursor!.configPath).toBe(join(homedir(), ".cursor", "mcp.json"));
   });
 
-  test("claude-code config path varies by platform", () => {
+  test("claude-code config path is correct", () => {
     const configs = getAgentConfigs();
     const claude = configs.find((c) => c.name === "claude-code");
     
     expect(claude).toBeDefined();
-    expect(claude!.configPath).toContain("claude");
+    expect(claude!.configPath).toBe(join(homedir(), ".claude", "settings.json"));
   });
 });
 

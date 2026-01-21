@@ -19,12 +19,10 @@ npx better-icons setup
 
 This will interactively configure the MCP server for:
 - **Cursor**
-- **Claude Desktop**
-- **VS Code (Copilot)**
-- **Windsurf**
+- **Claude Code**
 - **OpenCode**
-- **Cline / Roo**
-- **Aider**
+- **Windsurf**
+- **VS Code (Copilot)**
 
 ## Add AI Skills (Optional)
 
@@ -57,9 +55,9 @@ Add to `~/.cursor/mcp.json`:
 }
 ```
 
-### Claude Desktop
+### Claude Code (CLI)
 
-Add to `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS) or `%APPDATA%\Claude\claude_desktop_config.json` (Windows):
+Add to `~/.claude/settings.json`:
 
 ```json
 {
@@ -153,7 +151,8 @@ Recommend icons for user authentication
 ```bash
 npx better-icons              # Run the MCP server (for tool configs)
 npx better-icons setup        # Interactive setup wizard
-npx better-icons setup -y     # Setup with auto-confirm
+npx better-icons setup -y     # Setup with auto-confirm (global)
+npx better-icons setup -s project  # Setup for current project only
 npx better-icons config       # Show manual config instructions
 npx better-icons --help       # Show help
 ```
@@ -163,7 +162,13 @@ npx better-icons --help       # Show help
 | Option | Description |
 |--------|-------------|
 | `-y, --yes` | Skip confirmation prompts |
-| `-a, --agent <agents...>` | Specify agents (cursor, claude-code, windsurf, vscode, opencode, cline, aider) |
+| `-a, --agent <agents...>` | Specify agents (cursor, claude-code, opencode, windsurf, vscode) |
+| `-s, --scope <scope>` | Config scope: `global` (default) or `project` |
+
+### Scope
+
+- **Global**: Configures MCP server for all projects (stored in home directory)
+- **Project**: Configures MCP server for current project only (stored in project root)
 
 ## Development
 

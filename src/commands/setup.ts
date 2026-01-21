@@ -3,7 +3,7 @@ import * as p from "@clack/prompts";
 import chalk from "chalk";
 import { getAgentConfigs, getMcpServerConfig } from "../agents.js";
 import { shortenPath, readJsonFile, writeJsonFile } from "../utils.js";
-import type { AgentConfig, InstallResult } from "../types.js";
+import type { AgentConfig, InstallResult, ConfigScope } from "../types.js";
 
 const LOGO = `
   ${chalk.bold.white("██████╗ ███████╗████████╗████████╗███████╗██████╗ ")}
@@ -26,6 +26,7 @@ const LOGO = `
 interface SetupOptions {
   yes?: boolean;
   agent?: string[];
+  scope?: ConfigScope;
 }
 
 export async function setupCommand(options: SetupOptions) {
@@ -34,6 +35,35 @@ export async function setupCommand(options: SetupOptions) {
 
   const agents = getAgentConfigs();
   const detectedAgents = agents.filter((a) => a.detected);
+
+  // Scope selection
+  let scope: ConfigScope;
+
+  if (options.scope) {
+    if (options.scope !== "global" && options.scope !== "project") {
+      p.log.error(`Invalid scope: ${options.scope}`);
+      p.log.info("Valid scopes: global, project");
+      process.exit(1);
+    }
+    scope = options.scope;
+  } else if (options.yes) {
+    scope = "global";
+  } else {
+    const selectedScope = await p.select({
+      message: "Select configuration scope",
+      options: [
+        { value: "global", label: "Global", hint: "Available in all projects" },
+        { value: "project", label: "Project", hint: "Only for current project" },
+      ],
+    });
+
+    if (p.isCancel(selectedScope)) {
+      p.cancel("Setup cancelled");
+      process.exit(0);
+    }
+
+    scope = selectedScope as ConfigScope;
+  }
 
   // Agent selection
   let targetAgents: AgentConfig[];
@@ -50,7 +80,13 @@ export async function setupCommand(options: SetupOptions) {
     
     targetAgents = agents.filter((a) => options.agent!.includes(a.name));
   } else if (options.yes) {
-    targetAgents = detectedAgents.length > 0 ? detectedAgents : agents;
+    // For project scope with -y, only select first detected agent
+    if (scope === "project") {
+      const firstAgent = detectedAgents[0] || agents[0];
+      targetAgents = firstAgent ? [firstAgent] : [];
+    } else {
+      targetAgents = detectedAgents.length > 0 ? detectedAgents : agents;
+    }
     p.log.info(`Installing to: ${targetAgents.map((a) => chalk.cyan(a.displayName)).join(", ")}`);
   } else {
     const agentChoices = agents.map((a) => ({
@@ -59,10 +95,15 @@ export async function setupCommand(options: SetupOptions) {
       hint: a.detected ? chalk.green("detected") : chalk.dim("not detected"),
     }));
 
+    // For project scope, only pre-select first detected agent
+    const initialValues = scope === "project"
+      ? (detectedAgents[0] ? [detectedAgents[0].name] : [agents[0]?.name].filter(Boolean))
+      : detectedAgents.map((a) => a.name);
+
     const selected = await p.multiselect({
       message: "Select agents to configure",
       options: agentChoices,
-      initialValues: detectedAgents.map((a) => a.name),
+      initialValues,
       required: true,
     });
 
@@ -80,15 +121,21 @@ export async function setupCommand(options: SetupOptions) {
     process.exit(0);
   }
 
+  // Get config path based on scope
+  const getConfigPath = (agent: AgentConfig) => 
+    scope === "project" ? agent.projectConfigPath : agent.configPath;
+
   // Installation summary
   const summaryLines = targetAgents.map((a) => {
-    const shortPath = shortenPath(a.configPath);
-    const exists = existsSync(a.configPath);
+    const configPath = getConfigPath(a);
+    const shortPath = shortenPath(configPath);
+    const exists = existsSync(configPath);
     const status = exists ? chalk.yellow("(will update)") : chalk.green("(will create)");
     return `  ${chalk.cyan(a.displayName)} → ${chalk.dim(shortPath)} ${status}`;
   });
 
-  p.note(summaryLines.join("\n"), "Installation Summary");
+  const scopeLabel = scope === "project" ? "Project" : "Global";
+  p.note(summaryLines.join("\n"), `Installation Summary (${scopeLabel})`);
 
   // Confirmation
   if (!options.yes) {
@@ -110,16 +157,17 @@ export async function setupCommand(options: SetupOptions) {
   const serverConfig = getMcpServerConfig();
 
   for (const agent of targetAgents) {
+    const configPath = getConfigPath(agent);
     try {
-      const config = readJsonFile(agent.configPath);
+      const config = readJsonFile(configPath);
       config.mcpServers = { ...config.mcpServers, ...serverConfig };
-      writeJsonFile(agent.configPath, config);
-      results.push({ agent: agent.displayName, success: true, path: agent.configPath });
+      writeJsonFile(configPath, config);
+      results.push({ agent: agent.displayName, success: true, path: configPath });
     } catch (error) {
       results.push({
         agent: agent.displayName,
         success: false,
-        path: agent.configPath,
+        path: configPath,
         error: error instanceof Error ? error.message : "Unknown error",
       });
     }

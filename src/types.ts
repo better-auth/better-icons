@@ -10,8 +10,11 @@ export interface AgentConfig {
   name: string;
   displayName: string;
   configPath: string;
+  projectConfigPath: string;
   detected: boolean;
 }
+
+export type ConfigScope = "global" | "project";
 
 export interface InstallResult {
   agent: string;
