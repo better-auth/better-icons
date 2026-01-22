@@ -1,12 +1,12 @@
 # Better Icons
 
-Search and retrieve 200,000+ icons from 150+ icon sets. Works as a CLI tool or MCP server for AI agents.
+Search and retrieve 200,000+ icons from 150+ icon collections. Works as an MCP server for AI agents or CLI tool.
 
 ## Quick Start
 
-### Skills
+### Add SKills
 
-It uses the #[CLI](CLI (Direct Usage)) under the hood
+You can enable the underlying icons cli usage using skills
 
 ```bash
 npx add-skill better-auth/better-icons
@@ -14,7 +14,7 @@ npx add-skill better-auth/better-icons
 
 ### MCP Server (AI Agents)
 
-Configure the MCP server to enable icon tools in your AI coding assistant.
+Configure the MCP server to enable icon tools in your AI coding agents.
 
 ```bash
 npx better-icons setup
@@ -99,7 +99,7 @@ The following tools are available when using the MCP server with AI agents.
 
 ### `search_icons`
 
-Search for icons across 200+ icon libraries.
+Search for icons across 150+ icon collections.
 
 ```
 Search for "arrow" icons
@@ -268,7 +268,7 @@ Scan my icons file
 
 ### Search Icons
 
-Search across 200+ icon libraries.
+Search across 150+ icon collections.
 
 ```bash
 better-icons search <query> [options]
