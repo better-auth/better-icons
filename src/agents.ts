@@ -26,9 +26,9 @@ export function getAgentConfigs(): AgentConfig[] {
     {
       name: "opencode",
       displayName: "OpenCode",
-      configPath: join(home, ".opencode", "mcp.json"),
+      configPath: join(home, ".config", "opencode", "opencode.json"),
       projectConfigPath: join(cwd, "opencode.json"),
-      detected: existsSync(join(home, ".opencode")),
+      detected: existsSync(join(home, ".config", "opencode")),
     },
     {
       name: "windsurf",
@@ -52,6 +52,16 @@ export function getMcpServerConfig() {
     "better-icons": {
       command: "npx",
       args: ["-y", PACKAGE_NAME],
+    },
+  };
+}
+
+export function getOpenCodeMcpConfig() {
+  return {
+    "better-icons": {
+      type: "local" as const,
+      command: ["npx", "-y", PACKAGE_NAME],
+      enabled: true,
     },
   };
 }
