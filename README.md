@@ -1,15 +1,36 @@
 # Better Icons
 
-The MCP server for searching and retrieving 200,000 icons from 150+ icon sets.
+Search and retrieve 200,000+ icons from 150+ icon sets. Works as a CLI tool or MCP server for AI agents.
 
+## Quick Start
 
-## Get Started
+### CLI (Direct Usage)
+
+Use the CLI to search and retrieve icons directly from your terminal.
+
+```bash
+# Search for icons
+npx better-icons search arrow
+npx better-icons search home --prefix lucide --limit 10
+
+# Get icon SVG (outputs to stdout)
+npx better-icons get lucide:home > icon.svg
+npx better-icons get mdi:account --color '#333' --size 24
+
+# JSON output for scripting
+npx better-icons search settings --json | jq '.icons[:5]'
+npx better-icons get heroicons:check --json
+```
+
+### MCP Server (AI Agents)
+
+Configure the MCP server to enable icon tools in your AI coding assistant.
 
 ```bash
 npx better-icons setup
 ```
 
-This will interactively configure the MCP server for:
+This interactively configures the MCP server for:
 - **Cursor**
 - **Claude Code**
 - **OpenCode**
@@ -64,7 +85,9 @@ Add to `~/.claude/settings.json`:
 }
 ```
 
-## Tools
+## MCP Tools
+
+The following tools are available when using the MCP server with AI agents.
 
 ### `search_icons`
 
@@ -233,29 +256,52 @@ Scan my icons file
 | `fa6-solid` | Font Awesome 6 | Solid | 2,000+ |
 | `simple-icons` | Simple Icons | Logos | 3,000+ |
 
-## CLI Commands
+## CLI Reference
+
+### Search Icons
+
+Search across 200+ icon libraries.
 
 ```bash
-npx better-icons              # Run the MCP server (for tool configs)
-npx better-icons setup        # Interactive setup wizard
-npx better-icons setup -y     # Setup with auto-confirm (global)
-npx better-icons setup -s project  # Setup for current project only
-npx better-icons config       # Show manual config instructions
-npx better-icons --help       # Show help
+better-icons search <query> [options]
 ```
 
-### Options
+| Option | Description |
+|--------|-------------|
+| `-p, --prefix <prefix>` | Filter by collection (e.g., `lucide`, `mdi`) |
+| `-l, --limit <number>` | Maximum results (default: 32) |
+| `--json` | Output as JSON for scripting |
+
+### Get Icon
+
+Retrieve a single icon's SVG code.
+
+```bash
+better-icons get <icon-id> [options]
+```
+
+| Option | Description |
+|--------|-------------|
+| `-c, --color <color>` | Icon color (e.g., `#ff0000`, `currentColor`) |
+| `-s, --size <pixels>` | Icon size in pixels |
+| `--json` | Output as JSON with metadata |
+
+The icon ID format is `prefix:name` (e.g., `lucide:home`, `mdi:arrow-right`).
+
+### Setup Commands
+
+```bash
+better-icons setup              # Interactive setup wizard
+better-icons setup -y           # Auto-confirm (global scope)
+better-icons setup -s project   # Setup for current project only
+better-icons config             # Show manual config instructions
+```
 
 | Option | Description |
 |--------|-------------|
 | `-y, --yes` | Skip confirmation prompts |
 | `-a, --agent <agents...>` | Specify agents (cursor, claude-code, opencode, windsurf, vscode) |
 | `-s, --scope <scope>` | Config scope: `global` (default) or `project` |
-
-### Scope
-
-- **Global**: Configures MCP server for all projects (stored in home directory)
-- **Project**: Configures MCP server for current project only (stored in project root)
 
 ## Development
 

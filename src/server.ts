@@ -22,14 +22,7 @@ import {
   parseExistingIcons,
   getImportStatement,
 } from "./project-sync.js";
-
-interface IconifySearchResult {
-  icons: string[];
-  total: number;
-  limit: number;
-  start: number;
-  collections: Record<string, number>;
-}
+import type { IconifySearchResult, IconifyCollection } from "./types.js";
 
 function getTimeAgo(date: Date): string {
   const seconds = Math.floor((Date.now() - date.getTime()) / 1000);
@@ -41,17 +34,6 @@ function getTimeAgo(date: Date): string {
   const days = Math.floor(hours / 24);
   if (days < 7) return `${days}d ago`;
   return date.toLocaleDateString();
-}
-
-interface IconifyCollection {
-  name: string;
-  total: number;
-  author?: { name: string; url?: string };
-  license?: { title: string; spdx?: string; url?: string };
-  samples?: string[];
-  height?: number | number[];
-  category?: string;
-  palette?: boolean;
 }
 
 export async function runServer(): Promise<void> {

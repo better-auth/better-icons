@@ -22,3 +22,22 @@ export interface InstallResult {
   path: string;
   error?: string;
 }
+
+export interface IconifySearchResult {
+  icons: string[];
+  total: number;
+  limit: number;
+  start: number;
+  collections: Record<string, number>;
+}
+
+export interface IconifyCollection {
+  name: string;
+  total: number;
+  author?: { name: string; url?: string };
+  license?: { title: string; spdx?: string; url?: string };
+  samples?: string[];
+  height?: number | number[];
+  category?: string;
+  palette?: boolean;
+}
