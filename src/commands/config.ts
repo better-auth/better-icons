@@ -21,7 +21,7 @@ export function configCommand() {
     `${chalk.cyan("Claude Desktop:")} ~/Library/Application Support/Claude/claude_desktop_config.json`,
     `${chalk.cyan("VS Code:")} ~/.vscode/mcp.json`,
     `${chalk.cyan("Windsurf:")} ~/.windsurf/mcp.json`,
-    `${chalk.cyan("OpenCode:")} ~/.opencode/mcp.json`,
+    `${chalk.cyan("OpenCode:")} ~/.config/opencode/opencode.json`,
   ];
 
   p.note(locations.join("\n"), "Config File Locations");

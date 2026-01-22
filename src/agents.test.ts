@@ -53,6 +53,14 @@ describe("getAgentConfigs", () => {
     expect(claude).toBeDefined();
     expect(claude!.configPath).toBe(join(homedir(), ".claude", "settings.json"));
   });
+
+  test("opencode config path is correct", () => {
+    const configs = getAgentConfigs();
+    const opencode = configs.find((c) => c.name === "opencode");
+    
+    expect(opencode).toBeDefined();
+    expect(opencode!.configPath).toBe(join(homedir(), ".config", "opencode", "opencode.json"));
+  });
 });
 
 describe("getMcpServerConfig", () => {

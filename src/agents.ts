@@ -26,9 +26,9 @@ export function getAgentConfigs(): AgentConfig[] {
     {
       name: "opencode",
       displayName: "OpenCode",
-      configPath: join(home, ".opencode", "mcp.json"),
+      configPath: join(home, ".config", "opencode", "opencode.json"),
       projectConfigPath: join(cwd, "opencode.json"),
-      detected: existsSync(join(home, ".opencode")),
+      detected: existsSync(join(home, ".config", "opencode")),
     },
     {
       name: "windsurf",
