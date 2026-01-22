@@ -24,6 +24,40 @@ import {
 } from "./project-sync.js";
 import type { IconifySearchResult, IconifyCollection } from "./types.js";
 
+
+function parseSearchResult(data: unknown): IconifySearchResult | null {
+  if (
+    typeof data === "object" &&
+    data !== null &&
+    "icons" in data &&
+    Array.isArray((data as Record<string, unknown>).icons) &&
+    "total" in data &&
+    typeof (data as Record<string, unknown>).total === "number"
+  ) {
+    return data as IconifySearchResult;
+  }
+  return null;
+}
+
+function parseIconSet(data: unknown): IconSet | null {
+  if (
+    typeof data === "object" &&
+    data !== null &&
+    ("icons" in data || "aliases" in data)
+  ) {
+    return data as IconSet;
+  }
+  return null;
+}
+
+
+function parseCollections(data: unknown): Record<string, IconifyCollection> | null {
+  if (typeof data === "object" && data !== null && !Array.isArray(data)) {
+    return data as Record<string, IconifyCollection>;
+  }
+  return null;
+}
+
 function getTimeAgo(date: Date): string {
   const seconds = Math.floor((Date.now() - date.getTime()) / 1000);
   if (seconds < 60) return "just now";
@@ -64,7 +98,11 @@ export async function runServer(): Promise<void> {
         return { content: [{ type: "text" as const, text: `Error: ${response.statusText}` }], isError: true };
       }
 
-      const data = (await response.json()) as IconifySearchResult;
+      const rawData = await response.json();
+      const data = parseSearchResult(rawData);
+      if (!data) {
+        return { content: [{ type: "text" as const, text: "Error: Invalid API response format" }], isError: true };
+      }
       
       // Sort by learned preferences (most used collections first)
       const learnedPrefs = getPreferredCollections();
@@ -110,7 +148,12 @@ export async function runServer(): Promise<void> {
         return { content: [{ type: "text" as const, text: `Error: ${dataResponse.statusText}` }], isError: true };
       }
 
-      const iconSet = (await dataResponse.json()) as IconSet;
+      const rawIconSet = await dataResponse.json();
+      const iconSet = parseIconSet(rawIconSet);
+      if (!iconSet) {
+        return { content: [{ type: "text" as const, text: "Error: Invalid API response format" }], isError: true };
+      }
+      
       const resolvedName = resolveIconAlias(iconSet, name);
       
       const iconData = iconSet.icons?.[resolvedName];
@@ -150,7 +193,11 @@ export async function runServer(): Promise<void> {
         return { content: [{ type: "text" as const, text: `Error: ${response.statusText}` }], isError: true };
       }
 
-      const collections = (await response.json()) as Record<string, IconifyCollection>;
+      const rawCollections = await response.json();
+      const collections = parseCollections(rawCollections);
+      if (!collections) {
+        return { content: [{ type: "text" as const, text: "Error: Invalid API response format" }], isError: true };
+      }
       let filtered = Object.entries(collections);
       
       if (category) filtered = filtered.filter(([_, c]) => c.category?.toLowerCase().includes(category.toLowerCase()));
@@ -188,7 +235,11 @@ export async function runServer(): Promise<void> {
         return { content: [{ type: "text" as const, text: `Error: ${response.statusText}` }], isError: true };
       }
 
-      const data = (await response.json()) as IconifySearchResult;
+      const rawData = await response.json();
+      const data = parseSearchResult(rawData);
+      if (!data) {
+        return { content: [{ type: "text" as const, text: "Error: Invalid API response format" }], isError: true };
+      }
       const learnedPrefs = getPreferredCollections();
       const sorted = sortByPreferredCollections(data.icons, style, learnedPrefs).slice(0, limit);
 
@@ -279,7 +330,11 @@ export async function runServer(): Promise<void> {
         return { content: [{ type: "text" as const, text: `Error: ${response.statusText}` }], isError: true };
       }
 
-      const data = (await response.json()) as IconifySearchResult;
+      const rawData = await response.json();
+      const data = parseSearchResult(rawData);
+      if (!data) {
+        return { content: [{ type: "text" as const, text: "Error: Invalid API response format" }], isError: true };
+      }
       
       // Find icons with exact name match in different collections
       const exactMatches = data.icons.filter(icon => {
@@ -366,7 +421,15 @@ export async function runServer(): Promise<void> {
           continue;
         }
 
-        const iconSet = (await dataResponse.json()) as IconSet;
+        const rawIconSet = await dataResponse.json();
+        const iconSet = parseIconSet(rawIconSet);
+        
+        if (!iconSet) {
+          for (const name of names) {
+            results.push({ id: `${prefix}:${name}`, svg: "", error: "Invalid API response" });
+          }
+          continue;
+        }
         
         for (const name of names) {
           const iconId = `${prefix}:${name}`;
@@ -387,7 +450,10 @@ export async function runServer(): Promise<void> {
       }
 
       // Sort results to match input order
-      const sortedResults = icon_ids.map(id => results.find(r => r.id === id)!);
+      const sortedResults = icon_ids.map(id => {
+        const found = results.find(r => r.id === id);
+        return found ?? { id, svg: "", error: "Processing error" };
+      });
       
       const successful = sortedResults.filter(r => !r.error);
       const failed = sortedResults.filter(r => r.error);
@@ -508,7 +574,12 @@ export async function runServer(): Promise<void> {
         return { content: [{ type: "text" as const, text: `Error fetching icon: ${dataResponse.statusText}` }], isError: true };
       }
 
-      const iconSet = (await dataResponse.json()) as IconSet;
+      const rawIconSet = await dataResponse.json();
+      const iconSet = parseIconSet(rawIconSet);
+      if (!iconSet) {
+        return { content: [{ type: "text" as const, text: "Error: Invalid API response format" }], isError: true };
+      }
+      
       const resolvedName = resolveIconAlias(iconSet, name);
       
       const iconData = iconSet.icons?.[resolvedName];

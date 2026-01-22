@@ -69,19 +69,29 @@ export const ${name} = (props: React.SVGProps<SVGSVGElement>) => (
 }
 
 function generateVueComponent(name: string, svg: string, iconId: string): string {
+  // Escape backticks in SVG content for template literal
+  const escapedSvg = svg.replace(/`/g, "\\`").replace("<svg", '<svg v-bind="$attrs"');
   return `// ${iconId}
 export const ${name} = {
-  template: \`${svg.replace("<svg", '<svg v-bind="$attrs"')}\`,
+  name: "${name}",
+  inheritAttrs: false,
+  template: \`${escapedSvg}\`,
 };`;
 }
 
+/**
+ * Generate Svelte-compatible icon export.
+ * Since Svelte components need separate .svelte files, we export the SVG as a string
+ * that can be used with {@html} directive, or as a simple functional approach.
+ */
 function generateSvelteComponent(name: string, svg: string, iconId: string): string {
-  return `<!-- ${iconId} -->
-<script>
-  export let className = "";
-</script>
-
-${svg.replace("<svg", '<svg class={className}')}`;
+  // For Svelte, export the raw SVG string - can be used with {@html IconName}
+  // Also provide a props-accepting version that replaces class
+  const escapedSvg = svg.replace(/`/g, "\\`");
+  return `// ${iconId}
+// Use with: {@html ${name}} or {@html ${name}WithClass("my-class")}
+export const ${name} = \`${escapedSvg}\`;
+export const ${name}WithClass = (className: string) => \`${escapedSvg.replace("<svg", '<svg class="' + '${className}"')}\`;`;
 }
 
 function generateSolidComponent(name: string, svg: string, iconId: string): string {
@@ -110,24 +120,30 @@ export function parseExistingIcons(filePath: string): Map<string, string> {
     const content = readFileSync(filePath, "utf-8");
     
     // Match patterns like "// lucide:home" or "// mdi:account" followed by export
-    const iconPattern = /\/\/\s*([\w-]+:[\w-]+)\s*\nexport\s+(?:const|function)\s+(\w+)/g;
+    // More flexible: allows multiple newlines/whitespace between comment and export
+    // Icon ID pattern: prefix can have letters/numbers/hyphens, name can have letters/numbers/hyphens/dots
+    const iconPattern = /\/\/\s*([\w-]+:[\w\d.-]+)\s*\n\s*(?:\/\/[^\n]*\n\s*)*export\s+(?:const|function)\s+(\w+)/g;
     let match;
     
     while ((match = iconPattern.exec(content)) !== null) {
-      const iconId = match[1]!;
-      const componentName = match[2]!;
-      icons.set(iconId, componentName);
+      const iconId = match[1];
+      const componentName = match[2];
+      if (iconId && componentName) {
+        icons.set(iconId, componentName);
+      }
     }
     
-    // Also match Vue-style comments
-    const vuePattern = /<!--\s*([\w-]+:[\w-]+)\s*-->/g;
+    // Also match Vue-style comments (for .vue files)
+    const vuePattern = /<!--\s*([\w-]+:[\w\d.-]+)\s*-->/g;
     while ((match = vuePattern.exec(content)) !== null) {
-      const iconId = match[1]!;
+      const iconId = match[1];
+      if (!iconId) continue;
+      
       // Try to find the export name after it
       const afterComment = content.slice(match.index);
       const exportMatch = afterComment.match(/export\s+(?:const|function)\s+(\w+)/);
-      if (exportMatch) {
-        icons.set(iconId, exportMatch[1]!);
+      if (exportMatch?.[1]) {
+        icons.set(iconId, exportMatch[1]);
       }
     }
   } catch {
@@ -162,8 +178,9 @@ import type { JSX } from "solid-js";
 
 `;
     case "svelte":
-      return `<!-- Auto-generated icons file - managed by better-icons -->
-<!-- Do not edit manually - use sync_icon to add new icons -->
+      return `// Auto-generated icons file - managed by better-icons
+// Do not edit manually - use sync_icon to add new icons
+// Usage: {@html IconName} or {@html IconNameWithClass("my-class")}
 
 `;
     case "svg":
@@ -235,7 +252,8 @@ export function getImportStatement(
   
   switch (framework) {
     case "svelte":
-      return `import ${componentName} from './${fileName}.svelte';`;
+      // Svelte icons are exported as strings, use named import
+      return `import { ${componentName} } from './${fileName}';`;
     case "vue":
       return `import { ${componentName} } from './${fileName}';`;
     default:

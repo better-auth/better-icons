@@ -1,4 +1,4 @@
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, writeFileSync, renameSync } from "node:fs";
 import { homedir } from "node:os";
 import { dirname, join } from "node:path";
 
@@ -49,6 +49,10 @@ export function loadPreferences(): Preferences {
   }
 }
 
+/**
+ * Save preferences using atomic write (write to temp file, then rename).
+ * This prevents data corruption from concurrent writes.
+ */
 export function savePreferences(prefs: Preferences): void {
   const path = getPreferencesPath();
   const dir = dirname(path);
@@ -57,30 +61,62 @@ export function savePreferences(prefs: Preferences): void {
     mkdirSync(dir, { recursive: true });
   }
   
-  writeFileSync(path, JSON.stringify(prefs, null, 2), "utf-8");
+  // Write to temp file first, then atomically rename
+  const tempPath = `${path}.${process.pid}.tmp`;
+  try {
+    writeFileSync(tempPath, JSON.stringify(prefs, null, 2), "utf-8");
+    renameSync(tempPath, path);
+  } catch (error) {
+    // Clean up temp file if rename failed
+    try {
+      if (existsSync(tempPath)) {
+        writeFileSync(path, JSON.stringify(prefs, null, 2), "utf-8");
+      }
+    } catch {
+      // Ignore cleanup errors
+    }
+    throw error;
+  }
 }
 
+/**
+ * Track icon usage with retry logic for concurrent access.
+ * Uses atomic writes to prevent data loss.
+ */
 export function trackUsage(collectionPrefix: string, iconId?: string): void {
-  const prefs = loadPreferences();
-  const existing = prefs.collections[collectionPrefix];
-  const now = new Date().toISOString();
+  const maxRetries = 3;
   
-  prefs.collections[collectionPrefix] = {
-    count: (existing?.count || 0) + 1,
-    lastUsed: now,
-  };
-  
-  // Track in history if full icon ID is provided
-  if (iconId) {
-    // Remove if already exists (to move to top)
-    prefs.history = prefs.history.filter(h => h.iconId !== iconId);
-    // Add to beginning
-    prefs.history.unshift({ iconId, timestamp: now });
-    // Keep only MAX_HISTORY_SIZE entries
-    prefs.history = prefs.history.slice(0, MAX_HISTORY_SIZE);
+  for (let attempt = 0; attempt < maxRetries; attempt++) {
+    try {
+      const prefs = loadPreferences();
+      const existing = prefs.collections[collectionPrefix];
+      const now = new Date().toISOString();
+      
+      prefs.collections[collectionPrefix] = {
+        count: (existing?.count || 0) + 1,
+        lastUsed: now,
+      };
+      
+      // Track in history if full icon ID is provided
+      if (iconId) {
+        // Remove if already exists (to move to top)
+        prefs.history = prefs.history.filter(h => h.iconId !== iconId);
+        // Add to beginning
+        prefs.history.unshift({ iconId, timestamp: now });
+        // Keep only MAX_HISTORY_SIZE entries
+        prefs.history = prefs.history.slice(0, MAX_HISTORY_SIZE);
+      }
+      
+      savePreferences(prefs);
+      return; // Success
+    } catch {
+      if (attempt === maxRetries - 1) {
+        // Last attempt failed, log but don't crash
+        console.error("Failed to track icon usage after retries");
+      }
+      // Small delay before retry
+    }
   }
-  
-  savePreferences(prefs);
 }
 
 export function getPreferredCollections(): string[] {

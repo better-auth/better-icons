@@ -23,6 +23,30 @@ describe("resolveIconAlias", () => {
     const iconSet = { icons: { home: { body: "" } } };
     expect(resolveIconAlias(iconSet, "arrow")).toBe("arrow");
   });
+
+  test("resolves multi-level aliases (A → B → C)", () => {
+    const iconSet = {
+      icons: { house: { body: "" } },
+      aliases: { 
+        home: { parent: "dwelling" },
+        dwelling: { parent: "house" },
+      },
+    };
+    expect(resolveIconAlias(iconSet, "home")).toBe("house");
+  });
+
+  test("handles circular aliases with max depth", () => {
+    const iconSet = {
+      icons: {},
+      aliases: { 
+        a: { parent: "b" },
+        b: { parent: "a" },
+      },
+    };
+    // Should not infinite loop, returns after max depth
+    const result = resolveIconAlias(iconSet, "a");
+    expect(["a", "b"]).toContain(result);
+  });
 });
 
 describe("buildSvg", () => {
@@ -81,6 +105,34 @@ describe("buildSvg", () => {
     const icon = { body: '<path stroke="black" d="M0 0"/>' };
     const svg = buildSvg(icon, {});
     expect(svg).not.toContain('fill="currentColor"');
+  });
+
+  test("adds fill to circle elements", () => {
+    const icon = { body: '<circle cx="12" cy="12" r="10"/>' };
+    const svg = buildSvg(icon, {});
+    expect(svg).toContain('fill="currentColor"');
+  });
+
+  test("adds fill to rect elements", () => {
+    const icon = { body: '<rect x="0" y="0" width="24" height="24"/>' };
+    const svg = buildSvg(icon, {});
+    expect(svg).toContain('fill="currentColor"');
+  });
+
+  test("adds fill to multiple different elements", () => {
+    const icon = { body: '<path d="M0 0"/><circle cx="12" cy="12" r="5"/><rect width="10" height="10"/>' };
+    const svg = buildSvg(icon, {});
+    // All three elements should have fill added
+    const fillCount = (svg.match(/fill="currentColor"/g) || []).length;
+    expect(fillCount).toBe(3);
+  });
+
+  test("preserves existing fill on specific elements only", () => {
+    const icon = { body: '<path fill="red" d="M0 0"/><circle cx="12" cy="12" r="5"/>' };
+    const svg = buildSvg(icon, {}, { color: "#000" });
+    // Path should keep its red fill, circle should get the color
+    expect(svg).toContain('fill="red"');
+    expect(svg).toContain('fill="#000"');
   });
 });
 

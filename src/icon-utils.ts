@@ -13,11 +13,41 @@ export interface IconSet {
   height?: number;
 }
 
-export function resolveIconAlias(iconSet: IconSet, name: string): string {
-  if (iconSet.aliases?.[name]) {
-    return iconSet.aliases[name].parent;
+/**
+ * Resolve icon alias to the actual icon name.
+ * Handles multi-level aliases (A → B → C).
+ */
+export function resolveIconAlias(iconSet: IconSet, name: string, maxDepth = 10): string {
+  let current = name;
+  let depth = 0;
+  
+  while (iconSet.aliases?.[current] && depth < maxDepth) {
+    current = iconSet.aliases[current]?.parent ?? current;
+    depth++;
   }
-  return name;
+
+  
+  return current;
+}
+
+// SVG elements that can have fill applied
+const SVG_SHAPE_ELEMENTS = ["path", "circle", "rect", "polygon", "polyline", "line", "ellipse"];
+
+/**
+ * Add fill color to SVG elements that don't already have fill or stroke.
+ * Handles all common SVG shape elements, not just path.
+ */
+function applyFillToBody(body: string, color: string): string {
+  let result = body;
+  
+  for (const element of SVG_SHAPE_ELEMENTS) {
+    // Match opening tags for this element that don't already have fill= or stroke=
+    // Use a more precise regex that captures the full opening tag
+    const tagRegex = new RegExp(`<${element}(?![^>]*(?:fill=|stroke=))([^>]*?)(/?)>`, "g");
+    result = result.replace(tagRegex, `<${element} fill="${color}"$1$2>`);
+  }
+  
+  return result;
 }
 
 export function buildSvg(
@@ -32,12 +62,18 @@ export function buildSvg(
     ? `width="${options.size}" height="${options.size}"` 
     : `width="1em" height="1em"`;
   
-  let body = iconData.body;
-  if (!body.includes("fill=") && !body.includes("stroke=")) {
-    body = body.replace(/<path/g, `<path fill="${options?.color || 'currentColor'}"`);
-  }
+  const color = options?.color || "currentColor";
+  const body = applyFillToBody(iconData.body, color);
   
   return `<svg xmlns="http://www.w3.org/2000/svg" ${svgSize} viewBox="${viewBox}">${body}</svg>`;
+}
+
+/**
+ * Extract prefix from icon ID safely
+ */
+function getIconPrefix(iconId: string): string {
+  const prefix = iconId.split(":")[0];
+  return prefix ?? "";
 }
 
 export function sortByPreferredCollections(
@@ -55,8 +91,8 @@ export function sortByPreferredCollections(
   const preferred = [...new Set([...learnedPreferences, ...stylePreferred])];
   
   return [...icons].sort((a, b) => {
-    const prefixA = a.split(":")[0]!;
-    const prefixB = b.split(":")[0]!;
+    const prefixA = getIconPrefix(a);
+    const prefixB = getIconPrefix(b);
     const pA = preferred.indexOf(prefixA);
     const pB = preferred.indexOf(prefixB);
     
@@ -77,8 +113,8 @@ export function sortByLearnedPreferences(
   if (learnedPreferences.length === 0) return icons;
   
   return [...icons].sort((a, b) => {
-    const prefixA = a.split(":")[0]!;
-    const prefixB = b.split(":")[0]!;
+    const prefixA = getIconPrefix(a);
+    const prefixB = getIconPrefix(b);
     const pA = learnedPreferences.indexOf(prefixA);
     const pB = learnedPreferences.indexOf(prefixB);
     
