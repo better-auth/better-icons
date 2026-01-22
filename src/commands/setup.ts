@@ -1,7 +1,7 @@
 import { existsSync } from "node:fs";
 import * as p from "@clack/prompts";
 import chalk from "chalk";
-import { getAgentConfigs, getMcpServerConfig } from "../agents.js";
+import { getAgentConfigs, getMcpServerConfig, getOpenCodeMcpConfig } from "../agents.js";
 import { shortenPath, readJsonFile, writeJsonFile } from "../utils.js";
 import type { AgentConfig, InstallResult, ConfigScope } from "../types.js";
 
@@ -155,12 +155,19 @@ export async function setupCommand(options: SetupOptions) {
 
   const results: InstallResult[] = [];
   const serverConfig = getMcpServerConfig();
+  const openCodeConfig = getOpenCodeMcpConfig();
 
   for (const agent of targetAgents) {
     const configPath = getConfigPath(agent);
     try {
       const config = readJsonFile(configPath);
-      config.mcpServers = { ...config.mcpServers, ...serverConfig };
+      
+      if (agent.name === "opencode") {
+        config.mcp = { ...config.mcp, ...openCodeConfig };
+      } else {
+        config.mcpServers = { ...config.mcpServers, ...serverConfig };
+      }
+      
       writeJsonFile(configPath, config);
       results.push({ agent: agent.displayName, success: true, path: configPath });
     } catch (error) {

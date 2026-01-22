@@ -1,6 +1,6 @@
 import * as p from "@clack/prompts";
 import chalk from "chalk";
-import { getMcpServerConfig } from "../agents.js";
+import { getMcpServerConfig, getOpenCodeMcpConfig } from "../agents.js";
 
 export function configCommand() {
   console.log();
@@ -8,7 +8,12 @@ export function configCommand() {
   
   p.note(
     JSON.stringify({ mcpServers: getMcpServerConfig() }, null, 2),
-    "MCP Configuration"
+    "MCP Configuration (for Cursor, Claude Desktop, VS Code, Windsurf)"
+  );
+
+  p.note(
+    JSON.stringify({ mcp: getOpenCodeMcpConfig() }, null, 2),
+    "MCP Configuration (for OpenCode)"
   );
 
   const locations = [

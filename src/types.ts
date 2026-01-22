@@ -4,6 +4,14 @@ export interface McpConfig {
     args?: string[];
     env?: Record<string, string>;
   }>;
+  mcp?: Record<string, {
+    type: "local" | "remote";
+    command?: string[];
+    url?: string;
+    enabled?: boolean;
+    environment?: Record<string, string>;
+    timeout?: number;
+  }>;
 }
 
 export interface AgentConfig {

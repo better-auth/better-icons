@@ -55,3 +55,13 @@ export function getMcpServerConfig() {
     },
   };
 }
+
+export function getOpenCodeMcpConfig() {
+  return {
+    "better-icons": {
+      type: "local" as const,
+      command: ["npx", "-y", PACKAGE_NAME],
+      enabled: true,
+    },
+  };
+}
