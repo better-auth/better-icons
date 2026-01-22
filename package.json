@@ -16,7 +16,8 @@
     "build": "bun build ./src/index.ts --outdir dist --target node --minify",
     "dev": "bun run src/index.ts",
     "test": "bun test",
-    "prepublishOnly": "bun run build"
+    "prepublishOnly": "bun run build",
+    "release": "bumpp --commit --push --tag"
   },
   "keywords": [
     "mcp",
@@ -39,7 +40,8 @@
     "commander": "^12.0.0"
   },
   "devDependencies": {
-    "@types/bun": "latest"
+    "@types/bun": "latest",
+    "bumpp": "^10.4.0"
   },
   "peerDependencies": {
     "typescript": "^5"
