@@ -46,12 +46,18 @@ describe("getAgentConfigs", () => {
     expect(cursor!.configPath).toBe(join(homedir(), ".cursor", "mcp.json"));
   });
 
-  test("claude-code config path is correct", () => {
+  test("claude-code config path is valid", () => {
     const configs = getAgentConfigs();
     const claude = configs.find((c) => c.name === "claude-code");
+    const home = homedir();
     
     expect(claude).toBeDefined();
-    expect(claude!.configPath).toBe(join(homedir(), ".claude", "settings.json"));
+    // Config path should be either ~/.claude.json (native) or ~/.claude/settings.json (npm)
+    const validPaths = [
+      join(home, ".claude.json"),
+      join(home, ".claude", "settings.json"),
+    ];
+    expect(validPaths).toContain(claude!.configPath);
   });
 
   test("opencode config path is correct", () => {

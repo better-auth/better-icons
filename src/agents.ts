@@ -4,6 +4,29 @@ import { join } from "node:path";
 import type { AgentConfig } from "./types.js";
 import { PACKAGE_NAME } from "./constants.js";
 
+/**
+ * Get the Claude Code config path.
+ * Native installer uses ~/.claude.json, npm version uses ~/.claude/settings.json
+ */
+function getClaudeCodeConfigPath(home: string): string {
+  const nativeConfigPath = join(home, ".claude.json");
+  const npmConfigPath = join(home, ".claude", "settings.json");
+  
+  // Prefer native installer config if it exists
+  if (existsSync(nativeConfigPath)) {
+    return nativeConfigPath;
+  }
+  
+  return npmConfigPath;
+}
+
+/**
+ * Check if Claude Code is installed (either native or npm version)
+ */
+function isClaudeCodeDetected(home: string): boolean {
+  return existsSync(join(home, ".claude.json")) || existsSync(join(home, ".claude"));
+}
+
 export function getAgentConfigs(): AgentConfig[] {
   const home = homedir();
   const cwd = process.cwd();
@@ -19,9 +42,9 @@ export function getAgentConfigs(): AgentConfig[] {
     {
       name: "claude-code",
       displayName: "Claude Code",
-      configPath: join(home, ".claude", "settings.json"),
+      configPath: getClaudeCodeConfigPath(home),
       projectConfigPath: join(cwd, ".mcp.json"),
-      detected: existsSync(join(home, ".claude")),
+      detected: isClaudeCodeDetected(home),
     },
     {
       name: "opencode",
