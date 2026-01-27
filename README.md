@@ -26,6 +26,7 @@ This interactively configures the MCP server for:
 - **OpenCode**
 - **Windsurf**
 - **VS Code (Copilot)**
+- **Google Antigravity**
 
 Or [configure manually](#manual-installation).
 
@@ -81,6 +82,21 @@ Add to `~/.cursor/mcp.json`:
 ### Claude Code (CLI)
 
 Add to `~/.claude/settings.json`:
+
+```json
+{
+  "mcpServers": {
+    "better-icons": {
+      "command": "npx",
+      "args": ["-y", "better-icons"]
+    }
+  }
+}
+```
+
+### Google Antigravity
+
+Add to `~/.gemini/antigravity/mcp_config.json`:
 
 ```json
 {
@@ -308,7 +324,7 @@ better-icons config             # Show manual config instructions
 | Option | Description |
 |--------|-------------|
 | `-y, --yes` | Skip confirmation prompts |
-| `-a, --agent <agents...>` | Specify agents (cursor, claude-code, opencode, windsurf, vscode) |
+| `-a, --agent <agents...>` | Specify agents (cursor, claude-code, opencode, windsurf, vscode, antigravity) |
 | `-s, --scope <scope>` | Config scope: `global` (default) or `project` |
 
 ## Development

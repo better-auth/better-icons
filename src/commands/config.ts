@@ -8,7 +8,7 @@ export function configCommand() {
   
   p.note(
     JSON.stringify({ mcpServers: getMcpServerConfig() }, null, 2),
-    "MCP Configuration (for Cursor, Claude Desktop, VS Code, Windsurf)"
+    "MCP Configuration (for Cursor, Claude Desktop, VS Code, Windsurf, Google Antigravity)"
   );
 
   p.note(
@@ -22,6 +22,7 @@ export function configCommand() {
     `${chalk.cyan("VS Code:")} ~/.vscode/mcp.json`,
     `${chalk.cyan("Windsurf:")} ~/.windsurf/mcp.json`,
     `${chalk.cyan("OpenCode:")} ~/.config/opencode/opencode.json`,
+    `${chalk.cyan("Google Antigravity:")} ~/.gemini/antigravity/mcp_config.json`,
   ];
 
   p.note(locations.join("\n"), "Config File Locations");

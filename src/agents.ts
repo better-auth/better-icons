@@ -67,6 +67,13 @@ export function getAgentConfigs(): AgentConfig[] {
       projectConfigPath: join(cwd, ".vscode", "mcp.json"),
       detected: existsSync(join(home, ".vscode")),
     },
+    {
+      name: "antigravity",
+      displayName: "Google Antigravity",
+      configPath: join(home, ".gemini", "antigravity", "mcp_config.json"),
+      projectConfigPath: join(cwd, "mcp_config.json"),
+      detected: existsSync(join(home, ".gemini", "antigravity")),
+    },
   ];
 }
 

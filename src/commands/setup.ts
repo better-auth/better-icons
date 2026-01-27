@@ -77,6 +77,12 @@ export async function setupCommand(options: SetupOptions) {
       p.log.info(`Valid agents: ${validNames.join(", ")}`);
       process.exit(1);
     }
+
+    if (scope === "project" && options.agent.includes("antigravity")) {
+      p.log.error("MCP servers in Antigravity can only be added globally");
+      p.log.info("Use -s global or remove the -a antigravity flag");
+      process.exit(1);
+    }
     
     targetAgents = agents.filter((a) => options.agent!.includes(a.name));
   } else if (options.yes) {
@@ -100,9 +106,14 @@ export async function setupCommand(options: SetupOptions) {
       ? (detectedAgents[0] ? [detectedAgents[0].name] : [agents[0]?.name].filter(Boolean))
       : detectedAgents.map((a) => a.name);
 
+    // For project scope, do not give Google Antigravity as an option
+    const agentOptions = scope === "project"
+      ? (agentChoices.filter((a) => a.value != "antigravity"))
+      : agentChoices;
+
     const selected = await p.multiselect({
       message: "Select agents to configure",
-      options: agentChoices,
+      options: agentOptions,
       initialValues,
       required: true,
     });
