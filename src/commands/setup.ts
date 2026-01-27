@@ -100,9 +100,14 @@ export async function setupCommand(options: SetupOptions) {
       ? (detectedAgents[0] ? [detectedAgents[0].name] : [agents[0]?.name].filter(Boolean))
       : detectedAgents.map((a) => a.name);
 
+    // For project scope, do not give Google Antigravity as an option
+    const agentOptions = scope === "project"
+      ? (agentChoices.filter((a) => a.value != "antigravity"))
+      : agentChoices;
+
     const selected = await p.multiselect({
       message: "Select agents to configure",
-      options: agentChoices,
+      options: agentOptions,
       initialValues,
       required: true,
     });
