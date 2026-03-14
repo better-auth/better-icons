@@ -13,7 +13,7 @@ program
   .command("setup")
   .description("Configure MCP server for your coding agents")
   .option("-y, --yes", "Skip confirmation prompts")
-  .option("-a, --agent <agents...>", "Specify agents (cursor, claude-code, opencode, windsurf, vscode)")
+  .option("-a, --agent <agents...>", "Specify agents (cursor, claude-code, opencode, windsurf, vscode, antigravity)")
   .option("-s, --scope <scope>", "Config scope: global or project (default: global)")
   .action(setupCommand);
 

@@ -19,6 +19,7 @@ describe("getAgentConfigs", () => {
     expect(names).toContain("windsurf");
     expect(names).toContain("vscode");
     expect(names).toContain("opencode");
+    expect(names).toContain("antigravity");
   });
 
   test("each config has required properties", () => {

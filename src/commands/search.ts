@@ -14,7 +14,10 @@ interface SearchOptions {
   size?: string;
 }
 
-export async function searchCommand(query: string, options: SearchOptions): Promise<void> {
+export async function searchCommand(
+  query: string,
+  options: SearchOptions,
+): Promise<void> {
   const limit = options.limit ? parseInt(options.limit, 10) : 32;
   const params = new URLSearchParams({ query, limit: limit.toString() });
   if (options.prefix) params.set("prefix", options.prefix);
@@ -43,26 +46,46 @@ export async function searchCommand(query: string, options: SearchOptions): Prom
       return;
     }
 
-    console.log(chalk.bold(`Found ${data.total} icons (showing ${data.icons.length}):\n`));
+    console.log(
+      chalk.bold(`Found ${data.total} icons (showing ${data.icons.length}):\n`),
+    );
     for (const icon of data.icons) {
       const [prefix, name] = icon.split(":");
-      console.log(`  ${chalk.cyan(prefix)}:${chalk.white(name)}`);
+      if (!prefix || !name) continue;
+      const url = `${ICONIFY_API}/${prefix}/${name}.svg?height=48`;
+      const link = `\x1b]8;;${url}\x07[→]\x1b]8;;\x07`;
+      console.log(`  ${chalk.cyan(prefix)}:${chalk.white(name)} ${link}`);
     }
-    console.log(chalk.dim(`\nUse -d to download all: better-icons search "${query}" -d`));
+    console.log(
+      chalk.dim(`\nUse -d to download all: better-icons search "${query}" -d`),
+    );
   } catch (error) {
-    console.error(chalk.red(`Failed to search: ${error instanceof Error ? error.message : error}`));
+    console.error(
+      chalk.red(
+        `Failed to search: ${error instanceof Error ? error.message : error}`,
+      ),
+    );
     process.exit(1);
   }
 }
 
-async function downloadIcons(icons: string[], options: SearchOptions): Promise<void> {
-  const outDir = resolve(typeof options.download === "string" ? options.download : "./icons");
+async function downloadIcons(
+  icons: string[],
+  options: SearchOptions,
+): Promise<void> {
+  const outDir = resolve(
+    typeof options.download === "string" ? options.download : "./icons",
+  );
 
   if (!existsSync(outDir)) {
     mkdirSync(outDir, { recursive: true });
   }
 
-  console.log(chalk.bold(`Downloading ${icons.length} icons to ${chalk.cyan(outDir)}...\n`));
+  console.log(
+    chalk.bold(
+      `Downloading ${icons.length} icons to ${chalk.cyan(outDir)}...\n`,
+    ),
+  );
 
   const grouped = new Map<string, string[]>();
   for (const icon of icons) {
@@ -81,7 +104,11 @@ async function downloadIcons(icons: string[], options: SearchOptions): Promise<v
       const url = `${ICONIFY_API}/${prefix}.json?icons=${names.join(",")}`;
       const res = await fetch(url);
       if (!res.ok) {
-        console.error(chalk.red(`  Failed to fetch ${prefix} collection: ${res.statusText}`));
+        console.error(
+          chalk.red(
+            `  Failed to fetch ${prefix} collection: ${res.statusText}`,
+          ),
+        );
         failed += names.length;
         continue;
       }
@@ -110,7 +137,11 @@ async function downloadIcons(icons: string[], options: SearchOptions): Promise<v
         saved++;
       }
     } catch (err) {
-      console.error(chalk.red(`  Failed to fetch ${prefix}: ${err instanceof Error ? err.message : err}`));
+      console.error(
+        chalk.red(
+          `  Failed to fetch ${prefix}: ${err instanceof Error ? err.message : err}`,
+        ),
+      );
       failed += names.length;
     }
   }
