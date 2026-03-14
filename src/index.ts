@@ -27,6 +27,9 @@ program
   .description("Search for icons across 200+ libraries")
   .option("-p, --prefix <prefix>", "Filter by collection prefix (e.g., lucide, mdi)")
   .option("-l, --limit <number>", "Max results (default: 32)")
+  .option("-d, --download [dir]", "Download all found icons as SVG (default: ./icons)")
+  .option("-c, --color <color>", "Icon color for download (e.g., '#ff0000', 'currentColor')")
+  .option("-s, --size <pixels>", "Icon size in pixels for download")
   .option("--json", "Output as JSON for scripting")
   .action(searchCommand);
 
