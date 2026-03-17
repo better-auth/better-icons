@@ -91,7 +91,7 @@ function generateSvelteComponent(name: string, svg: string, iconId: string): str
   return `// ${iconId}
 // Use with: {@html ${name}} or {@html ${name}WithClass("my-class")}
 export const ${name} = \`${escapedSvg}\`;
-export const ${name}WithClass = (className: string) => \`${escapedSvg.replace("<svg", '<svg class="' + '${className}"')}\`;`;
+export const ${name}WithClass = (className: string) => \`${escapedSvg.replace("<svg", '<svg class=\\""')}\`.replace('class=""', \`class="\${className.replace(/"/g, '&quot;')}"\`);`;
 }
 
 function generateSolidComponent(name: string, svg: string, iconId: string): string {
@@ -202,15 +202,14 @@ export function addIconToFile(
   svg: string,
   framework: IconFramework,
   customName?: string
-): { componentName: string; alreadyExists: boolean; existingName?: string } {
+): { componentName: string; alreadyExists: boolean } {
   const existingIcons = parseExistingIcons(filePath);
-  
+
   // Check if icon already exists
   if (existingIcons.has(iconId)) {
     return {
       componentName: existingIcons.get(iconId)!,
       alreadyExists: true,
-      existingName: existingIcons.get(iconId),
     };
   }
   

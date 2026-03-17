@@ -72,8 +72,7 @@ export function buildSvg(
  * Extract prefix from icon ID safely
  */
 function getIconPrefix(iconId: string): string {
-  const prefix = iconId.split(":")[0];
-  return prefix ?? "";
+  return iconId.split(":")[0];
 }
 
 export function sortByPreferredCollections(
